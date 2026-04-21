@@ -12,7 +12,7 @@ TagManager:
   - 
   - Water
   - UI
-  - 
+  - TrainInterior
   - 
   - 
   - 
@@ -44,8 +44,8 @@ TagManager:
     locked: 0
   m_RenderingLayers:
   - Default
-  - Light Layer 1
-  - Light Layer 2
+  - Exterior
+  - Interior
   - Light Layer 3
   - Light Layer 4
   - Light Layer 5
