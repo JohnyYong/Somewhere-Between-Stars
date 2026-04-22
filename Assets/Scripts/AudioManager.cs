@@ -46,6 +46,12 @@ public class AudioManager : MonoBehaviour
 
 	private int _currentSpaceClip = 0;
 	private bool _usingSourceA = true;
+	public static AudioManager instance;
+
+	void Awake()
+	{
+		instance = this;
+	}
 
 	void Start()
 	{
@@ -195,5 +201,50 @@ public class AudioManager : MonoBehaviour
 				_sfxSource.PlayOneShot(clip, curtainRustleVolume);
 			}
 		}
+	}
+
+	public void PlaySFX(AudioClip clip, float volume)
+	{
+		_sfxSource.PlayOneShot(clip, volume);
+	}
+
+	public IEnumerator FadeOutBGM(float duration)
+	{
+		float startVolume = _spaceSourceA.volume;
+		float elapsed = 0f;
+
+		AudioSource active = _usingSourceA ? _spaceSourceA : _spaceSourceB;
+
+		while (elapsed < duration)
+		{
+			elapsed += Time.deltaTime;
+			active.volume = Mathf.Lerp(startVolume, 0f, elapsed / duration);
+			yield return null;
+		}
+
+		active.Stop();
+	}
+	void OnApplicationFocus(bool hasFocus)
+	{
+		// Reduce volume when window loses focus
+		AudioListener.volume = hasFocus ? 1.0f : 0.5f;
+	}
+	public IEnumerator FadeInBGM(AudioClip clip, float duration)
+	{
+		AudioSource next = _usingSourceA ? _spaceSourceB : _spaceSourceA;
+		next.clip = clip;
+		next.volume = 0f;
+		next.Play();
+
+		float elapsed = 0f;
+		while (elapsed < duration)
+		{
+			elapsed += Time.deltaTime;
+			next.volume = Mathf.Lerp(0f, spaceAmbienceVolume, elapsed / duration);
+			yield return null;
+		}
+
+		next.volume = spaceAmbienceVolume;
+		_usingSourceA = !_usingSourceA;
 	}
 }
