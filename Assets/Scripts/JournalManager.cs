@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using Unity.VisualScripting.Antlr3.Runtime.Tree;
 
 public class JournalManager : MonoBehaviour
 {
@@ -110,6 +111,11 @@ public class JournalManager : MonoBehaviour
 
 		HandleTyping();
 		UpdateNavigationButtons();
+
+		if (Input.GetKey(KeyCode.F11) && Input.GetKey(KeyCode.F12))
+		{
+			ClearJournalData();
+		}
 	}
 
 	// ── Public API ──────────────────────────────
@@ -462,6 +468,28 @@ public class JournalManager : MonoBehaviour
 		// No cursor — clean save
 		return sb.ToString();
 	}
+
+	public void ClearJournalData()
+	{
+		int count = PlayerPrefs.GetInt("JournalCount", 0);
+
+		for (int i  = 0; i < count; i++)
+		{
+            PlayerPrefs.DeleteKey($"Journal_Day_{i}");
+            PlayerPrefs.DeleteKey($"Journal_Content_{i}");
+            PlayerPrefs.DeleteKey($"Journal_Torn_{i}");
+        }
+
+		PlayerPrefs.DeleteKey("JournalCount");
+		PlayerPrefs.Save();
+
+		_currentChars.Clear();
+		_lastCharWasSpace = false;
+		LoadEntries(); //Resetting
+
+		_viewIndex = _entries.Count - 1;
+		RefreshSpread();
+    }
 
 	// ── Navigation ──────────────────────────────
 

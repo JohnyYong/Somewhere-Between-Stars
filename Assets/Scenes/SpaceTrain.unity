@@ -5039,6 +5039,20 @@ MonoBehaviour:
   cloudDuration: 8
   cloudFadeDuration: 3
   dustFollowSpeed: 0.3
+--- !u!114 &117607863
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 117607853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24a412b643635e8478b554b10a03298b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FrameRateManager
+  _targetFrameRate: 60
+  _useVSync: 1
 --- !u!114 &221218115 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7810335144810133710, guid: 0346284de05e64847a40bc8bd8f5be10, type: 3}
@@ -5871,8 +5885,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InteractionHighlight
   detectionDistance: 60
   fadeSpeed: 4
-  glowColor: {r: 1, g: 0.8017975, b: 0.5613208, a: 1}
   glowIntensity: 0.05
+  lightRange: 1.5
   interactableTags:
   - Radio
   - RightSofaChair
@@ -12818,6 +12832,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 401719614}
     - target: {fileID: 3553340610479144740, guid: 0b59e63d76251a343840fc82100c440e, type: 3}
+      propertyPath: planetPrefab
+      value: 
+      objectReference: {fileID: 1233340062308885057, guid: a58c4c09f8dffda439d0bfef97c0850b, type: 3}
+    - target: {fileID: 3553340610479144740, guid: 0b59e63d76251a343840fc82100c440e, type: 3}
       propertyPath: trainTransform
       value: 
       objectReference: {fileID: 1386565360}
@@ -12893,6 +12911,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6686234634491705682, guid: 0b59e63d76251a343840fc82100c440e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 117607860}
+    - targetCorrespondingSourceObject: {fileID: 6686234634491705682, guid: 0b59e63d76251a343840fc82100c440e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 117607863}
   m_SourcePrefab: {fileID: 100100000, guid: 0b59e63d76251a343840fc82100c440e, type: 3}
 --- !u!1001 &4511742948693946554
 PrefabInstance:

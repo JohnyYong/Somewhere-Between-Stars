@@ -1,6 +1,9 @@
 using UnityEngine;
 using System.Collections;
 
+//Need to make it such that the users can add music which they want as well
+//Maybe like a playlist maker / system for them as well
+
 public class RadioInteraction : MonoBehaviour
 {
 	[Header("BGM Tracks")]
@@ -27,7 +30,6 @@ public class RadioInteraction : MonoBehaviour
 
 	void Start()
 	{
-		// Create a 3D audio source on this object
 		_radioSource = gameObject.AddComponent<AudioSource>();
 		_radioSource.spatialBlend = 1f;         // fully 3D
 		_radioSource.rolloffMode = AudioRolloffMode.Custom;
@@ -36,7 +38,6 @@ public class RadioInteraction : MonoBehaviour
 		_radioSource.playOnAwake = false;
 		_radioSource.loop = false;
 
-		// Set a nice rolloff curve — falls off naturally
 		AnimationCurve rolloff = new AnimationCurve();
 		rolloff.AddKey(0f, 1f);
 		rolloff.AddKey(0.1f, 0.8f);
@@ -67,27 +68,21 @@ public class RadioInteraction : MonoBehaviour
 	{
 		_isSwitching = true;
 
-		// Step 1 — play static from radio position (3D)
 		if (radioTuningStatic != null)
 			_radioSource.PlayOneShot(radioTuningStatic, staticVolume);
 
-		// Step 2 — fade out current BGM while static plays
 		yield return StartCoroutine(
 			audioManager.FadeOutBGM(crossfadeDuration * 0.5f));
 
-		// Step 3 — wait for static to finish
 		float staticLength = radioTuningStatic != null ?
 							 radioTuningStatic.length : 1f;
 		yield return new WaitForSeconds(staticLength * 0.8f);
 
-		// Step 4 — beep from radio position (3D)
 		if (beepSound != null)
 			_radioSource.PlayOneShot(beepSound, beepVolume);
 
-		// Step 5 — short pause after beep
 		yield return new WaitForSeconds(0.3f);
 
-		// Step 6 — switch and fade in next track
 		_currentTrack = (_currentTrack + 1) % bgmTracks.Length;
 
 		yield return StartCoroutine(
