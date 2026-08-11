@@ -9,6 +9,7 @@ TagManager:
   - Windows
   - Radio
   - Diary
+  - Companion
   layers:
   - Default
   - TransparentFX

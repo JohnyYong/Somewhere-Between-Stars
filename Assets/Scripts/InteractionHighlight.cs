@@ -8,15 +8,17 @@ public class InteractionHighlight : MonoBehaviour
 	public float fadeSpeed = 4f;
 	public float glowIntensity = 1.5f;
 	public float lightRange = 1.5f;
+	public Color lightColor = Color.white;
+
 
 	[Header("Tags")]
-	public string[] interactableTags = { "Radio", "Diary", "RightSofaChair" };
+	public string[] interactableTags = { "Radio", "Diary", "RightSofaChair", "Companion" };
 
 	private Camera _playerCamera;
 	private GameObject _currentTarget;
 	private GameObject _previousTarget;
 	private float _currentGlow = 0f;
-
+	private Color prevColor = Color.white;
 	private Light _highlightLight;
 
 	void Start()
@@ -29,7 +31,8 @@ public class InteractionHighlight : MonoBehaviour
 
 		_highlightLight = lightGO.AddComponent<Light>();
 		_highlightLight.type = LightType.Point;
-		_highlightLight.color = Color.white;
+		_highlightLight.color = lightColor;
+		prevColor = _highlightLight.color;
 		_highlightLight.intensity = 50f;
 		_highlightLight.range = lightRange;
 		_highlightLight.shadows = LightShadows.None;
@@ -96,7 +99,13 @@ public class InteractionHighlight : MonoBehaviour
 				_currentTarget.transform.position + Vector3.up * 0.2f;
 		}
 
-		// Disable light entirely when fully faded
 		_highlightLight.gameObject.SetActive(_currentGlow > 0.001f);
-	}
+
+		if (prevColor != lightColor)
+		{
+            _highlightLight.color = lightColor;
+			prevColor = lightColor;
+        }
+
+    }
 }
