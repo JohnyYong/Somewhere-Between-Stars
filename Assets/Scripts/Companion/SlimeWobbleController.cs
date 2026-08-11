@@ -1,41 +1,33 @@
 using UnityEngine;
 
-// Attach this to the same GameObject as the MeshRenderer using the
-// Custom/SlimeSphere shader. It drives the shader's _WobbleAmount property
-// up and down over time using Perlin noise, so the sphere drifts between
-// "smooth" and "wobbly" on its own instead of needing hand-keyframed values.
-//
-// Uses a MaterialPropertyBlock so it won't create a material instance
-// or break GPU instancing/batching.
+
 [RequireComponent(typeof(Renderer))]
 public class SlimeWobbleController : MonoBehaviour
 {
     [Header("Wobble Range")]
-    [Tooltip("Minimum wobble amount (near-smooth state).")]
     [Range(0f, 1f)] public float minWobble = 0.05f;
 
-    [Tooltip("Maximum wobble amount (fully jiggly state).")]
     [Range(0f, 1f)] public float maxWobble = 0.9f;
 
     [Header("Drift Timing")]
-    [Tooltip("How quickly the target wobble level drifts between calm and jiggly. Lower = slower, more gradual mood swings.")]
     public float driftSpeed = 0.15f;
 
-    [Tooltip("How quickly the current wobble value chases the drifting target. Higher = snappier transitions.")]
     public float followSpeed = 1.5f;
 
     [Header("Optional: Poke to Jiggle")]
-    [Tooltip("If true, calling Poke() will temporarily spike the wobble amount (e.g. on collision or click).")]
     public bool enablePoke = true;
     public float pokeStrength = 1f;
     public float pokeDecay = 2f;
 
     [Header("Speaking State")]
-    [Tooltip("Wobble level to chase while IsSpeaking is true (talking animation), independent of ambient drift.")]
     [Range(0f, 1f)] public float speakingWobble = 0.6f;
-
-    [Tooltip("How quickly wobble ramps into/out of the speaking level.")]
     public float speakingFollowSpeed = 4f;
+
+    [Header("Thinking State")]
+    [Range(0f, 1f)] public float thinkingWobble = 0.35f;
+    public float thinkingFollowSpeed = 3f;
+    public float thinkingSpinSpeed = 320f;
+    public float rotationResetSpeed = 4f;
 
     static readonly int WobbleAmountId = Shader.PropertyToID("_WobbleAmount");
 
@@ -45,6 +37,8 @@ public class SlimeWobbleController : MonoBehaviour
     float _currentWobble;
     float _pokeValue;
     bool _isSpeaking;
+    bool _isThinking;
+    Quaternion _restRotation;
 
     void Awake()
     {
@@ -52,19 +46,32 @@ public class SlimeWobbleController : MonoBehaviour
         _propBlock = new MaterialPropertyBlock();
         _noiseOffset = Random.Range(0f, 1000f); // so multiple slimes don't sync up
         _currentWobble = minWobble;
+        _restRotation = transform.localRotation;
     }
 
     void Update()
     {
-        if (_isSpeaking)
+        UpdateWobble();
+        UpdateRotation();
+    }
+
+    void UpdateWobble()
+    {
+        if (_isThinking)
         {
-            //While talking, ignore ambient drift and chase a fixed
-            //"animated speech" wobble level instead.
+            // Mild anticipatory jiggle while waiting on a reply
+            _currentWobble = Mathf.Lerp(_currentWobble, thinkingWobble, Time.deltaTime * thinkingFollowSpeed);
+        }
+        else if (_isSpeaking)
+        {
+            // While talking, ignore ambient drift and chase a fixed
+            // "animated speech" wobble level instead.
             _currentWobble = Mathf.Lerp(_currentWobble, speakingWobble, Time.deltaTime * speakingFollowSpeed);
         }
         else
         {
-            //Perlin noise (0..1) sampled over time gives a smooth, non-repeating
+            // Perlin noise (0..1) sampled over time gives a smooth, non-repeating
+            // drift between calm and jiggly states.
             float n = Mathf.PerlinNoise(_noiseOffset, Time.time * driftSpeed);
             float targetWobble = Mathf.Lerp(minWobble, maxWobble, n);
             _currentWobble = Mathf.Lerp(_currentWobble, targetWobble, Time.deltaTime * followSpeed);
@@ -82,9 +89,30 @@ public class SlimeWobbleController : MonoBehaviour
         _renderer.SetPropertyBlock(_propBlock);
     }
 
+    void UpdateRotation()
+    {
+        if (_isThinking)
+        {
+            transform.Rotate(Vector3.up, thinkingSpinSpeed * Time.deltaTime, Space.Self);
+        }
+        else if (transform.localRotation != _restRotation)
+        {
+            // Ease back to the original orientation once thinking stops,
+            // rather than snapping or leaving it mid-spin.
+            transform.localRotation = Quaternion.Slerp(
+                transform.localRotation, _restRotation, Time.deltaTime * rotationResetSpeed);
+        }
+    }
+
+
     public void SetSpeaking(bool speaking)
     {
         _isSpeaking = speaking;
+    }
+
+    public void SetThinking(bool thinking)
+    {
+        _isThinking = thinking;
     }
 
     public void Poke()

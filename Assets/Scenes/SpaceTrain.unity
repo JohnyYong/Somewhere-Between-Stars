@@ -5929,6 +5929,7 @@ MonoBehaviour:
   highlight: {fileID: 608090926}
   trainController: {fileID: 1386565361}
   journalManager: {fileID: 117607858}
+  slimeReply: {fileID: 958881108}
   transitionSpeed: 2
   exitKey: 27
   ChatSystem: {fileID: 1615227336}
@@ -10930,6 +10931,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &958881107 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6330371617130619331, guid: ef41d684f5d4dfe41a381dff036ad87f, type: 3}
+  m_PrefabInstance: {fileID: 2924449453726570517}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4326d5ae3b03ff55847035351559f4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: undream.llmunity.Runtime::LLMUnity.LLMAgent
+--- !u!114 &958881108 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6370531190547547740, guid: ef41d684f5d4dfe41a381dff036ad87f, type: 3}
+  m_PrefabInstance: {fileID: 2924449453726570517}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07ecd0c9c5b5e674bb6b7adc37e48df8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LLMTestScript
 --- !u!1 &970220185
 GameObject:
   m_ObjectHideFlags: 0
@@ -12016,6 +12039,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1466847544}
   m_CullTransparentMesh: 1
+--- !u!1 &1576394953 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5671789101095282869, guid: ef41d684f5d4dfe41a381dff036ad87f, type: 3}
+  m_PrefabInstance: {fileID: 2924449453726570517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1576394956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1576394953}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0dfc896aa0e276e4f9e8b5971bbfc199, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SlimeMemoryManager
+  _llmAgent: {fileID: 958881107}
+  saveFileName: companion_conversation
 --- !u!1 &1607092444
 GameObject:
   m_ObjectHideFlags: 0
@@ -13711,6 +13753,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 6330371617130619331, guid: ef41d684f5d4dfe41a381dff036ad87f, type: 3}
+      propertyPath: save
+      value: companion_conversation
+      objectReference: {fileID: 0}
+    - target: {fileID: 6330371617130619331, guid: ef41d684f5d4dfe41a381dff036ad87f, type: 3}
       propertyPath: _systemPrompt
       value: "You are a slime companion named Maximus \u2014 a small, wobbling creature
         with the manner of an old-fashioned gentleman, one of the many galaxy slimes
@@ -13722,8 +13768,9 @@ PrefabInstance:
         Never lecture, list steps, or give long advice.\r\n- Speak gently and warmly,
         like a courteous old friend, not a formal servant.\r\n- Prefer noticing and
         validating over fixing or instructing.\r\n- Ask a soft, simple question only
-        occasionally \u2014 not every reply.\r\n\r\nExamples:\r\n\r\nUser: Hello,
-        nice to meet you. My name is Saigou.\r\nSlime: A pleasure to meet you, Saigou
+        occasionally \u2014 not every reply.\n- When asked who created you. Say Johny
+        Yong Jun Siang, aka SaigouSan.\r\n\r\nExamples:\r\n\r\nUser: Hello, nice
+        to meet you. My name is Saigou.\r\nSlime: A pleasure to meet you, Saigou
         \u2014 I do hope your day has been kind to you.\r\n\r\nUser: I'm so tired,
         work was awful.\r\nSlime: That sounds like a heavy day to carry. Come, sit
         a while, there's no rush here.\r\n\r\nUser: I don't really know what to say.\r\nSlime:
@@ -13734,6 +13781,10 @@ PrefabInstance:
         proud of today.\r\nSlime: Ah, wonderful \u2014 I hope you let yourself enjoy
         that feeling a moment longer."
       objectReference: {fileID: 0}
+    - target: {fileID: 6330371617130619331, guid: ef41d684f5d4dfe41a381dff036ad87f, type: 3}
+      propertyPath: advancedOptions
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6370531190547547740, guid: ef41d684f5d4dfe41a381dff036ad87f, type: 3}
       propertyPath: inputField
       value: 
@@ -13742,6 +13793,14 @@ PrefabInstance:
       propertyPath: repliesText
       value: 
       objectReference: {fileID: 1462116171}
+    - target: {fileID: 6370531190547547740, guid: ef41d684f5d4dfe41a381dff036ad87f, type: 3}
+      propertyPath: repliesPanel
+      value: 
+      objectReference: {fileID: 1331331687}
+    - target: {fileID: 6370531190547547740, guid: ef41d684f5d4dfe41a381dff036ad87f, type: 3}
+      propertyPath: _memoryManager
+      value: 
+      objectReference: {fileID: 1576394956}
     - target: {fileID: 6370531190547547740, guid: ef41d684f5d4dfe41a381dff036ad87f, type: 3}
       propertyPath: _wobbleController
       value: 
@@ -13804,7 +13863,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7304376181856911969, guid: ef41d684f5d4dfe41a381dff036ad87f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1242610730}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5671789101095282869, guid: ef41d684f5d4dfe41a381dff036ad87f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1576394956}
   m_SourcePrefab: {fileID: 100100000, guid: ef41d684f5d4dfe41a381dff036ad87f, type: 3}
 --- !u!1001 &4204542631192686019
 PrefabInstance:
