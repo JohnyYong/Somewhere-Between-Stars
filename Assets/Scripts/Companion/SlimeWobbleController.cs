@@ -30,6 +30,13 @@ public class SlimeWobbleController : MonoBehaviour
     public float pokeStrength = 1f;
     public float pokeDecay = 2f;
 
+    [Header("Speaking State")]
+    [Tooltip("Wobble level to chase while IsSpeaking is true (talking animation), independent of ambient drift.")]
+    [Range(0f, 1f)] public float speakingWobble = 0.6f;
+
+    [Tooltip("How quickly wobble ramps into/out of the speaking level.")]
+    public float speakingFollowSpeed = 4f;
+
     static readonly int WobbleAmountId = Shader.PropertyToID("_WobbleAmount");
 
     Renderer _renderer;
@@ -37,6 +44,7 @@ public class SlimeWobbleController : MonoBehaviour
     float _noiseOffset;
     float _currentWobble;
     float _pokeValue;
+    bool _isSpeaking;
 
     void Awake()
     {
@@ -48,12 +56,19 @@ public class SlimeWobbleController : MonoBehaviour
 
     void Update()
     {
-        // Perlin noise (0..1) sampled over time gives a smooth, non-repeating
-        // drift between calm and jiggly states.
-        float n = Mathf.PerlinNoise(_noiseOffset, Time.time * driftSpeed);
-        float targetWobble = Mathf.Lerp(minWobble, maxWobble, n);
-
-        _currentWobble = Mathf.Lerp(_currentWobble, targetWobble, Time.deltaTime * followSpeed);
+        if (_isSpeaking)
+        {
+            //While talking, ignore ambient drift and chase a fixed
+            //"animated speech" wobble level instead.
+            _currentWobble = Mathf.Lerp(_currentWobble, speakingWobble, Time.deltaTime * speakingFollowSpeed);
+        }
+        else
+        {
+            //Perlin noise (0..1) sampled over time gives a smooth, non-repeating
+            float n = Mathf.PerlinNoise(_noiseOffset, Time.time * driftSpeed);
+            float targetWobble = Mathf.Lerp(minWobble, maxWobble, n);
+            _currentWobble = Mathf.Lerp(_currentWobble, targetWobble, Time.deltaTime * followSpeed);
+        }
 
         if (enablePoke && _pokeValue > 0f)
         {
@@ -67,10 +82,11 @@ public class SlimeWobbleController : MonoBehaviour
         _renderer.SetPropertyBlock(_propBlock);
     }
 
-    /// <summary>
-    /// Call this (e.g. from an OnCollisionEnter or OnMouseDown) to make the
-    /// slime spike into a jiggly state momentarily, then settle back down.
-    /// </summary>
+    public void SetSpeaking(bool speaking)
+    {
+        _isSpeaking = speaking;
+    }
+
     public void Poke()
     {
         if (!enablePoke) return;

@@ -2,214 +2,251 @@
 
 public class SeatInteraction : MonoBehaviour
 {
-	[Header("References")]
-	public Transform playerCamera;
-	public Transform sofaSeatPosition;
-	public Transform journalViewPosition;
-	public Transform camOrigin;  // drag CamOrigin here
-	public InteractionHighlight highlight;
-	public TrainController trainController;
-	public JournalManager journalManager;
+    [Header("References")]
+    public Transform playerCamera;
+    public Transform sofaSeatPosition;
+    public Transform journalViewPosition;
+    public Transform camOrigin;  // drag CamOrigin here
+    public Transform companionViewPosition;
 
-	[Header("Settings")]
-	public float transitionSpeed = 2.0f;
-	public KeyCode exitKey = KeyCode.Escape;
+    public InteractionHighlight highlight;
+    public TrainController trainController;
+    public JournalManager journalManager;
+    public SlimeReply slimeReply;
 
-	// State
-	private enum PlayerState { Standing, Seated, ViewingJournal }
-	private PlayerState _currentState = PlayerState.Standing;
+    [Header("Settings")]
+    public float transitionSpeed = 2.0f;
+    public KeyCode exitKey = KeyCode.Escape;
+    public GameObject ChatSystem;
+    // State
+    private enum PlayerState { Standing, Seated, ViewingJournal, TalkingToCompanion }
+    private PlayerState _currentState = PlayerState.Standing;
 
-	// Stored positions
-	private Vector3 _standingLocalPos;
-	private Quaternion _standingLocalRot;
-	private Vector3 _seatedLocalPos;
-	private Quaternion _seatedLocalRot;
+    private PlayerState _stateBeforeOverlay = PlayerState.Standing;
 
-	// Transition
-	private bool _isTransitioning = false;
-	private float _transitionProgress = 0f;
-	private Vector3 _transitionStartPos;
-	private Quaternion _transitionStartRot;
-	private Vector3 _transitionTargetPos;
-	private Quaternion _transitionTargetRot;
-	private PlayerState _transitionDestination;
+    // Stored positions
+    private Vector3 _standingLocalPos;
+    private Quaternion _standingLocalRot;
+    private Vector3 _seatedLocalPos;
+    private Quaternion _seatedLocalRot;
 
-	void Start()
-	{
-		// Use CamOrigin as the standing reference instead of initial position
-		_standingLocalPos = playerCamera.parent
-			.InverseTransformPoint(camOrigin.position);
-		_standingLocalRot = camOrigin.rotation;
-	}
+    // Transition
+    private bool _isTransitioning = false;
+    private float _transitionProgress = 0f;
+    private Vector3 _transitionStartPos;
+    private Quaternion _transitionStartRot;
+    private Vector3 _transitionTargetPos;
+    private Quaternion _transitionTargetRot;
+    private PlayerState _transitionDestination;
 
-	void Update()
-	{
-		HandleInput();
-		HandleTransition();
-	}
 
-	void HandleInput()
-	{
-		if (_isTransitioning) return;
+    void Start()
+    {
+        // Use CamOrigin as the standing reference instead of initial position
+        _standingLocalPos = playerCamera.parent
+            .InverseTransformPoint(camOrigin.position);
+        _standingLocalRot = camOrigin.rotation;
+    }
 
-		// Escape logic — always goes up one level
-		if (Input.GetKeyDown(exitKey))
-		{
-			if (_currentState == PlayerState.ViewingJournal)
-			{
-				// Return to wherever we came from before journal
-				if (IsNearSeat())
-					BeginTransition(PlayerState.Seated);
-				else
-					BeginTransition(PlayerState.Standing);
-				return;
-			}
+    void Update()
+    {
+        HandleInput();
+        HandleTransition();
+    }
 
-			if (_currentState == PlayerState.Seated)
-			{
-				BeginTransition(PlayerState.Standing);
-				return;
-			}
-		}
+    void HandleInput()
+    {
+        if (_isTransitioning) return;
 
-		// Click interactions
-		if (Input.GetMouseButtonDown(0))
-		{
-			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        // Escape logic — always goes up one level
+        if (Input.GetKeyDown(exitKey))
+        {
+            ChatSystem.SetActive(false);
 
-			if (Physics.Raycast(ray, out RaycastHit hit, 60f))
-			{
-				if (hit.collider.CompareTag("RightSofaChair") &&
-					_currentState == PlayerState.Standing)
-				{
-					BeginTransition(PlayerState.Seated);
-				}
-				else if (hit.collider.CompareTag("Diary") &&
-						 _currentState != PlayerState.ViewingJournal)
-				{
-					// Save seated position before going to journal
-					if (_currentState == PlayerState.Seated)
-					{
-						_seatedLocalPos = playerCamera.localPosition;
-						_seatedLocalRot = playerCamera.localRotation;
-					}
-					BeginTransition(PlayerState.ViewingJournal);
-				}
-			}
-		}
-	}
+            if (_currentState == PlayerState.ViewingJournal ||
+                _currentState == PlayerState.TalkingToCompanion)
+            {
+                // Return to whatever state we were in before entering this overlay
+                BeginTransition(_stateBeforeOverlay);
+                return;
+            }
 
-	// Check if camera is close to seat position
-	// Used to determine where to return after closing journal
-	bool IsNearSeat()
-	{
-		Vector3 seatLocalPos = playerCamera.parent
-			.InverseTransformPoint(sofaSeatPosition.position);
-		return Vector3.Distance(_seatedLocalPos, seatLocalPos) < 0.5f;
-	}
+            if (_currentState == PlayerState.Seated)
+            {
+                BeginTransition(PlayerState.Standing);
+                return;
+            }
 
-	void BeginTransition(PlayerState destination)
-	{
-		_transitionDestination = destination;
-		_transitionProgress = 0f;
-		_transitionStartPos = playerCamera.localPosition;
-		_transitionStartRot = playerCamera.localRotation;
 
-		switch (destination)
-		{
-			case PlayerState.Standing:
-				_transitionTargetPos = playerCamera.parent
-					.InverseTransformPoint(camOrigin.position);
-				_transitionTargetRot = camOrigin.rotation;
-				break;
+        }
 
-			case PlayerState.Seated:
-				_transitionTargetPos = playerCamera.parent
-					.InverseTransformPoint(sofaSeatPosition.position);
-				_transitionTargetRot = sofaSeatPosition.rotation;
-				break;
+        // Click interactions
+        if (Input.GetMouseButtonDown(0))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-			case PlayerState.ViewingJournal:
-				_transitionTargetPos = playerCamera.parent
-					.InverseTransformPoint(journalViewPosition.position);
-				_transitionTargetRot = journalViewPosition.rotation;
-				break;
-		}
+            if (Physics.Raycast(ray, out RaycastHit hit, 60f))
+            {
+                if (hit.collider.CompareTag("RightSofaChair") &&
+                    _currentState == PlayerState.Standing)
+                {
+                    BeginTransition(PlayerState.Seated);
+                }
+                else if (hit.collider.CompareTag("Diary") &&
+                         _currentState != PlayerState.ViewingJournal)
+                {
+                    EnterOverlay(PlayerState.ViewingJournal);
+                }
+                else if (hit.collider.CompareTag("Companion") &&
+                         _currentState != PlayerState.TalkingToCompanion)
+                {
+                    EnterOverlay(PlayerState.TalkingToCompanion);
+                    ChatSystem.SetActive(true);
+                }
+            }
+        }
+    }
 
-		_isTransitioning = true;
+    // Shared entry point for both overlay states (Journal, Companion).
+    // Remembers whether we were Standing or Seated so Escape can return correctly.
+    void EnterOverlay(PlayerState overlayState)
+    {
+        if (_currentState == PlayerState.Standing || _currentState == PlayerState.Seated)
+        {
+            _stateBeforeOverlay = _currentState;
 
-		// Suspend BOTH sway and shake during any transition
-		if (trainController != null)
-		{
-			trainController.isSwaySuspended = true;
-			trainController.isShakeSuspended = true;
-		}
+            if (_currentState == PlayerState.Seated)
+            {
+                _seatedLocalPos = playerCamera.localPosition;
+                _seatedLocalRot = playerCamera.localRotation;
+            }
+        }
+        // If we're already in the other overlay (e.g. Journal -> Companion directly),
+        // _stateBeforeOverlay keeps whatever was recorded on the way into that overlay.
 
-		if (_currentState == PlayerState.ViewingJournal &&
-			destination != PlayerState.ViewingJournal)
-		{
-			if (journalManager != null)
-				journalManager.CloseJournal();
-		}
-	}
+        BeginTransition(overlayState);
+    }
 
-	void HandleTransition()
-	{
-		if (!_isTransitioning) return;
+    void BeginTransition(PlayerState destination)
+    {
+        _transitionDestination = destination;
+        _transitionProgress = 0f;
+        _transitionStartPos = playerCamera.localPosition;
+        _transitionStartRot = playerCamera.localRotation;
 
-		_transitionProgress += Time.deltaTime * transitionSpeed;
-		_transitionProgress = Mathf.Clamp01(_transitionProgress);
+        switch (destination)
+        {
+            case PlayerState.Standing:
+                _transitionTargetPos = playerCamera.parent
+                    .InverseTransformPoint(camOrigin.position);
+                _transitionTargetRot = camOrigin.rotation;
+                break;
 
-		float t = Mathf.SmoothStep(0f, 1f, _transitionProgress);
+            case PlayerState.Seated:
+                _transitionTargetPos = playerCamera.parent
+                    .InverseTransformPoint(sofaSeatPosition.position);
+                _transitionTargetRot = sofaSeatPosition.rotation;
+                break;
 
-		Vector3 newPos = Vector3.Lerp(
-			_transitionStartPos, _transitionTargetPos, t);
-		Quaternion newRot = Quaternion.Lerp(
-			_transitionStartRot, _transitionTargetRot, t);
+            case PlayerState.ViewingJournal:
+                _transitionTargetPos = playerCamera.parent
+                    .InverseTransformPoint(journalViewPosition.position);
+                _transitionTargetRot = journalViewPosition.rotation;
+                break;
 
-		playerCamera.localPosition = newPos;
-		playerCamera.localRotation = newRot;
+            case PlayerState.TalkingToCompanion:
+                _transitionTargetPos = playerCamera.parent
+                    .InverseTransformPoint(companionViewPosition.position);
+                _transitionTargetRot = companionViewPosition.rotation;
+                break;
+        }
 
-		// Keep shake anchor updated
-		if (trainController != null)
-			trainController.seatedLocalPosition = newPos;
+        _isTransitioning = true;
 
-		if (_transitionProgress >= 1f)
-		{
-			playerCamera.localPosition = _transitionTargetPos;
-			playerCamera.localRotation = _transitionTargetRot;
-			_isTransitioning = false;
-			_currentState = _transitionDestination;
+        if (trainController != null)
+        {
+            trainController.isSwaySuspended = true;
+            trainController.isShakeSuspended = true;
+        }
 
-			if (_currentState == PlayerState.Standing && trainController != null)
-			{
-				trainController.UpdateSwayOrigin(_standingLocalPos);
-				ReEnableSway();  // no more Invoke — called immediately
-			}
-			else
-			{
-				// Re-enable shake for seated/journal states
-				// sway stays suspended
-				if (trainController != null)
-					trainController.isShakeSuspended = false;
-			}
+        if (_currentState == PlayerState.ViewingJournal &&
+            destination != PlayerState.ViewingJournal)
+        {
+            if (journalManager != null)
+                journalManager.CloseJournal();
+        }
 
-			if (_currentState == PlayerState.ViewingJournal)
-			{
-				Debug.Log("Arrived at journal — journalManager: " +
-						  (journalManager != null ? "assigned" : "NULL"));
-				if (journalManager != null)
-					journalManager.OpenJournal();
-			}
-		}
-	}
+        // Leaving the companion — end the conversation cleanly
+        if (_currentState == PlayerState.TalkingToCompanion &&
+            destination != PlayerState.TalkingToCompanion)
+        {
+            if (slimeReply != null)
+                slimeReply.EndConversation();
+        }
+    }
+    void HandleTransition()
+    {
+        if (!_isTransitioning) return;
 
-	void ReEnableSway()
-	{
-		if (trainController != null)
-		{
-			trainController.UpdateSwayOrigin(_standingLocalPos);
-			trainController.FadeInSway();
-		}
-	}
+        _transitionProgress += Time.deltaTime * transitionSpeed;
+        _transitionProgress = Mathf.Clamp01(_transitionProgress);
+
+        float t = Mathf.SmoothStep(0f, 1f, _transitionProgress);
+
+        Vector3 newPos = Vector3.Lerp(
+            _transitionStartPos, _transitionTargetPos, t);
+        Quaternion newRot = Quaternion.Lerp(
+            _transitionStartRot, _transitionTargetRot, t);
+
+        playerCamera.localPosition = newPos;
+        playerCamera.localRotation = newRot;
+
+        // Keep shake anchor updated
+        if (trainController != null)
+            trainController.seatedLocalPosition = newPos;
+
+        if (_transitionProgress >= 1f)
+        {
+            playerCamera.localPosition = _transitionTargetPos;
+            playerCamera.localRotation = _transitionTargetRot;
+            _isTransitioning = false;
+            _currentState = _transitionDestination;
+
+            if (_currentState == PlayerState.Standing && trainController != null)
+            {
+                trainController.UpdateSwayOrigin(_standingLocalPos);
+                ReEnableSway();  // no more Invoke — called immediately
+            }
+            else
+            {
+                // Re-enable shake for seated/journal/companion states
+                // sway stays suspended
+                if (trainController != null)
+                    trainController.isShakeSuspended = false;
+            }
+
+            if (_currentState == PlayerState.ViewingJournal)
+            {
+                Debug.Log("Arrived at journal — journalManager: " +
+                          (journalManager != null ? "assigned" : "NULL"));
+                if (journalManager != null)
+                    journalManager.OpenJournal();
+            }
+
+            if (_currentState == PlayerState.TalkingToCompanion)
+            {
+                if (slimeReply != null)
+                    slimeReply.BeginConversation();
+            }
+        }
+    }
+
+    void ReEnableSway()
+    {
+        if (trainController != null)
+        {
+            trainController.UpdateSwayOrigin(_standingLocalPos);
+            trainController.FadeInSway();
+        }
+    }
 }

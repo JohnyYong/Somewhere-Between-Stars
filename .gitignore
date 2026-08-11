@@ -80,3 +80,12 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# ---- LLMUnity: native inference binaries (regenerated via Package Manager, per-platform .so/.dll) ----
+[Aa]ssets/[Ss]treamingAssets/LlamaLib*/
+
+# ---- LLMUnity: downloaded model weights (fetch via the LLM component's Download Model / Load Model button) ----
+*.gguf
+
+# ---- Whisper: downloaded model weights (fetched separately per the Whisper setup steps) ----
+[Aa]ssets/[Ss]treamingAssets/[Ww]hisper/*.bin
