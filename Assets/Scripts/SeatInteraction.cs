@@ -39,6 +39,7 @@ public class SeatInteraction : MonoBehaviour
     private Quaternion _transitionTargetRot;
     private PlayerState _transitionDestination;
 
+    [SerializeField] private GameObject playerChatBox;
 
     void Start()
     {
@@ -62,7 +63,7 @@ public class SeatInteraction : MonoBehaviour
         if (Input.GetKeyDown(exitKey))
         {
             ChatSystem.SetActive(false);
-
+            playerChatBox.SetActive(false);
             if (_currentState == PlayerState.ViewingJournal ||
                 _currentState == PlayerState.TalkingToCompanion)
             {
@@ -102,6 +103,7 @@ public class SeatInteraction : MonoBehaviour
                 {
                     EnterOverlay(PlayerState.TalkingToCompanion);
                     ChatSystem.SetActive(true);
+                    playerChatBox.SetActive(true);
                 }
             }
         }

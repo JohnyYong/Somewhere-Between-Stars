@@ -10,6 +10,7 @@ public class SlimeReply : MonoBehaviour
     [SerializeField] private LLMAgent _llmAgent;
     [SerializeField] private TextMeshProUGUI repliesText;
     [SerializeField] private RectTransform repliesPanel;
+
     [SerializeField] private SlimeWobbleController _wobbleController;
     [SerializeField] private SlimeMemoryManager _memoryManager;
     [SerializeField] private TMP_InputField inputField;

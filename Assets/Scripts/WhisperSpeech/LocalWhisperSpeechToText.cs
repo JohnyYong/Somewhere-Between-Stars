@@ -19,6 +19,8 @@ public class LocalWhisperSpeechToText : MonoBehaviour
     public event Action OnRecordingStarted;
     public event Action OnRecordingStopped;
 
+    [SerializeField] private SlimeReply replyBrain;
+
     public bool IsRecording { get; private set; }
 
     void Awake()
@@ -86,5 +88,6 @@ public class LocalWhisperSpeechToText : MonoBehaviour
 
         string text = result.Result.Trim();
         OnTranscriptionComplete?.Invoke(text);
+        replyBrain.SendToSlime(text); //To answer
     }
 }
