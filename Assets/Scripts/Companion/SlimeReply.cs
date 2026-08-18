@@ -11,11 +11,11 @@ public class SlimeReply : MonoBehaviour
     [SerializeField] private TextMeshProUGUI repliesText;
     [SerializeField] private RectTransform repliesPanel;
 
+    [SerializeField] private TypingSpeed typeSpeed;
     [SerializeField] private SlimeWobbleController _wobbleController;
     [SerializeField] private SlimeMemoryManager _memoryManager;
     [SerializeField] private TMP_InputField inputField;
-    [SerializeField] private float charDelay = 0.03f;
-
+    
     [Header("Panel Bounce")]
     [SerializeField] private float panelOpenDuration = 0.35f;
     [SerializeField] private float panelCloseDuration = 0.2f;
@@ -23,12 +23,13 @@ public class SlimeReply : MonoBehaviour
     [Header("Greeting")]
     [SerializeField] private string greetingPrompt = "The player has just sat down to talk with you. Greet them warmly in your usual manner.";
 
-
     private string _latestReply = "";
     private Coroutine _typewriterRoutine;
     private Coroutine _panelRoutine;
     private bool _isReplying = false;
     private bool _hasReceivedFirstToken = false;
+
+    
 
     void Start()
     {
@@ -176,7 +177,7 @@ public class SlimeReply : MonoBehaviour
         foreach (char c in fullText)
         {
             repliesText.text += c;
-            yield return new WaitForSeconds(charDelay);
+            yield return new WaitForSeconds(typeSpeed.GetCharDelay());
         }
 
         if (_wobbleController != null) _wobbleController.SetSpeaking(false);

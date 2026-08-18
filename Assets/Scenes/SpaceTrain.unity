@@ -14541,10 +14541,10 @@ MonoBehaviour:
   m_FillRect: {fileID: 1588895237}
   m_HandleRect: {fileID: 1244003144}
   m_Direction: 0
-  m_MinValue: 0
-  m_MaxValue: 1
+  m_MinValue: 1
+  m_MaxValue: 15
   m_WholeNumbers: 0
-  m_Value: 0.401
+  m_Value: 1
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -14719,7 +14719,7 @@ GameObject:
   - component: {fileID: 1053415045}
   - component: {fileID: 1053415044}
   m_Layer: 5
-  m_Name: WindowedButton
+  m_Name: AmnesiaButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14788,7 +14788,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1053415045}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 7806336744673278325}
+        m_TargetAssemblyTypeName: SlimeMemoryManager, Assembly-CSharp
+        m_MethodName: ClearMemory
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1053415045
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16947,6 +16959,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1681725123}
   - component: {fileID: 1681725124}
+  - component: {fileID: 1681725125}
   m_Layer: 5
   m_Name: SettingsMenu
   m_TagString: Untagged
@@ -16990,6 +17003,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TabSwitching
   CompanionMenu: {fileID: 873517465}
   GeneralMenu: {fileID: 253515591}
+--- !u!114 &1681725125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1681725122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a83fc23909ccb7f4db8bdb1c8f44d27b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TypingSpeed
+  typingSpeed: 1
+  baseCharDelay: 0.05
+  animatingText: {fileID: 1290803029}
+  demoText: THIS IS YOUR REPLY SPEED.
+  pauseBetweenLoops: 1
+  speedSlider: {fileID: 919530290}
 --- !u!1 &1688017321
 GameObject:
   m_ObjectHideFlags: 0
@@ -21626,10 +21657,10 @@ MonoBehaviour:
   _llmAgent: {fileID: 9172781559290018262}
   repliesText: {fileID: 8767001896709982731}
   repliesPanel: {fileID: 1534817575385227364}
+  typeSpeed: {fileID: 1681725125}
   _wobbleController: {fileID: 5302984129527237798}
   _memoryManager: {fileID: 7806336744673278325}
   inputField: {fileID: 2854207048535005388}
-  charDelay: 0.03
   panelOpenDuration: 0.35
   panelCloseDuration: 0.2
   greetingPrompt: The player has just sat down to talk with you. Greet them warmly

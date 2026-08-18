@@ -5,12 +5,6 @@ public class TabSwitching : MonoBehaviour
     [SerializeField] private GameObject CompanionMenu;
     [SerializeField] private GameObject GeneralMenu; //Always Default
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
     void OnEnable()
     {
         OnGeneralMenu();
@@ -40,11 +34,5 @@ public class TabSwitching : MonoBehaviour
         }
         GeneralMenu.SetActive(false);
         CompanionMenu.SetActive(true);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }
