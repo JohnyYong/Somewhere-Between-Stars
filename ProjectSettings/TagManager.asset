@@ -10,6 +10,7 @@ TagManager:
   - Radio
   - Diary
   - Companion
+  - Luggage
   layers:
   - Default
   - TransparentFX

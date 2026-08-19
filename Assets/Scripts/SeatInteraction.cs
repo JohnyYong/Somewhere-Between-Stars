@@ -8,6 +8,7 @@ public class SeatInteraction : MonoBehaviour
     public Transform journalViewPosition;
     public Transform camOrigin;  // drag CamOrigin here
     public Transform companionViewPosition;
+    public Transform luggageSettingViewPosition;
 
     public InteractionHighlight highlight;
     public TrainController trainController;
@@ -18,8 +19,10 @@ public class SeatInteraction : MonoBehaviour
     public float transitionSpeed = 2.0f;
     public KeyCode exitKey = KeyCode.Escape;
     public GameObject ChatSystem;
+    public GameObject settingsPanel; //shown when viewing the luggage settings
+
     // State
-    private enum PlayerState { Standing, Seated, ViewingJournal, TalkingToCompanion }
+    private enum PlayerState { Standing, Seated, ViewingJournal, TalkingToCompanion, ViewingSettings }
     private PlayerState _currentState = PlayerState.Standing;
 
     private PlayerState _stateBeforeOverlay = PlayerState.Standing;
@@ -64,8 +67,11 @@ public class SeatInteraction : MonoBehaviour
         {
             ChatSystem.SetActive(false);
             playerChatBox.SetActive(false);
+            if (settingsPanel != null) settingsPanel.SetActive(false);
+
             if (_currentState == PlayerState.ViewingJournal ||
-                _currentState == PlayerState.TalkingToCompanion)
+                _currentState == PlayerState.TalkingToCompanion ||
+                _currentState == PlayerState.ViewingSettings)
             {
                 // Return to whatever state we were in before entering this overlay
                 BeginTransition(_stateBeforeOverlay);
@@ -112,11 +118,17 @@ public class SeatInteraction : MonoBehaviour
                     ChatSystem.SetActive(true);
                     playerChatBox.SetActive(true);
                 }
+                else if (hit.collider.CompareTag("Luggage") &&
+                         _currentState != PlayerState.ViewingSettings)
+                {
+                    EnterOverlay(PlayerState.ViewingSettings);
+                    if (settingsPanel != null) settingsPanel.SetActive(true);
+                }
             }
         }
     }
 
-    // Shared entry point for both overlay states (Journal, Companion).
+    // Shared entry point for overlay states (Journal, Companion, Settings).
     // Remembers whether we were Standing or Seated so Escape can return correctly.
     void EnterOverlay(PlayerState overlayState)
     {
@@ -130,7 +142,7 @@ public class SeatInteraction : MonoBehaviour
                 _seatedLocalRot = playerCamera.localRotation;
             }
         }
-        // If we're already in the other overlay (e.g. Journal -> Companion directly),
+        // If we're already in another overlay (e.g. Journal -> Companion directly),
         // _stateBeforeOverlay keeps whatever was recorded on the way into that overlay.
 
         BeginTransition(overlayState);
@@ -168,6 +180,12 @@ public class SeatInteraction : MonoBehaviour
                     .InverseTransformPoint(companionViewPosition.position);
                 _transitionTargetRot = companionViewPosition.rotation;
                 break;
+
+            case PlayerState.ViewingSettings:
+                _transitionTargetPos = playerCamera.parent
+                    .InverseTransformPoint(luggageSettingViewPosition.position);
+                _transitionTargetRot = luggageSettingViewPosition.rotation;
+                break;
         }
 
         _isTransitioning = true;
@@ -191,6 +209,14 @@ public class SeatInteraction : MonoBehaviour
         {
             if (slimeReply != null)
                 slimeReply.EndConversation();
+        }
+
+        // Leaving settings — hide the panel
+        if (_currentState == PlayerState.ViewingSettings &&
+            destination != PlayerState.ViewingSettings)
+        {
+            if (settingsPanel != null)
+                settingsPanel.SetActive(false);
         }
     }
     void HandleTransition()
@@ -228,7 +254,7 @@ public class SeatInteraction : MonoBehaviour
             }
             else
             {
-                // Re-enable shake for seated/journal/companion states
+                // Re-enable shake for seated/journal/companion/settings states
                 // sway stays suspended
                 if (trainController != null)
                     trainController.isShakeSuspended = false;

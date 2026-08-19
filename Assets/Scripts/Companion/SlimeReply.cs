@@ -9,13 +9,12 @@ public class SlimeReply : MonoBehaviour
 {
     [SerializeField] private LLMAgent _llmAgent;
     [SerializeField] private TextMeshProUGUI repliesText;
-    [SerializeField] private RectTransform repliesPanel;
-
-    [SerializeField] private TypingSpeed typeSpeed;
+    [SerializeField] private RectTransform repliesPanel; // the panel that holds repliesText
     [SerializeField] private SlimeWobbleController _wobbleController;
-    [SerializeField] private SlimeMemoryManager _memoryManager;
+    [SerializeField] private SlimeMemoryManager _memoryManager; // optional — subscribes to clear events
     [SerializeField] private TMP_InputField inputField;
-    
+    [SerializeField] private float charDelay = 0.03f;
+
     [Header("Panel Bounce")]
     [SerializeField] private float panelOpenDuration = 0.35f;
     [SerializeField] private float panelCloseDuration = 0.2f;
@@ -23,13 +22,16 @@ public class SlimeReply : MonoBehaviour
     [Header("Greeting")]
     [SerializeField] private string greetingPrompt = "The player has just sat down to talk with you. Greet them warmly in your usual manner.";
 
+
     private string _latestReply = "";
     private Coroutine _typewriterRoutine;
     private Coroutine _panelRoutine;
     private bool _isReplying = false;
     private bool _hasReceivedFirstToken = false;
 
-    
+    // Lets other scripts (e.g. voice input) check whether it's safe to
+    // send a new message right now.
+    public bool IsBusy => _isReplying;
 
     void Start()
     {
@@ -121,10 +123,7 @@ public class SlimeReply : MonoBehaviour
         _isReplying = true;
         _hasReceivedFirstToken = false;
 
-        if (_llmAgent.llm != null)
-        {
-            _llmAgent.seed = Random.Range(0, int.MaxValue);
-        }
+        _llmAgent.seed = Random.Range(0, int.MaxValue); //randomize so replies aren't identical every time
 
         if (_wobbleController != null) _wobbleController.SetThinking(true);
         SetInputEnabled(false);
@@ -132,6 +131,7 @@ public class SlimeReply : MonoBehaviour
 
         _llmAgent.Chat(userText, HandleReply, ReplyComplete);
     }
+
     void HandleReply(string reply)
     {
         if (!_hasReceivedFirstToken)
@@ -143,7 +143,7 @@ public class SlimeReply : MonoBehaviour
         _latestReply = reply;
     }
 
-    string TruncateToSentences(string text, int maxSentences = 2)
+    string TruncateToSentences(string text, int maxSentences = 3)
     {
         var sentences = Regex.Matches(text, @"[^.!?]+[.!?]+")
                               .Cast<Match>()
@@ -156,7 +156,7 @@ public class SlimeReply : MonoBehaviour
 
     void ReplyComplete()
     {
-        string finalReply = TruncateToSentences(_latestReply, 2);
+        string finalReply = TruncateToSentences(_latestReply, 3);
         PlayTypewriter(finalReply);
     }
 
@@ -177,7 +177,7 @@ public class SlimeReply : MonoBehaviour
         foreach (char c in fullText)
         {
             repliesText.text += c;
-            yield return new WaitForSeconds(typeSpeed.GetCharDelay());
+            yield return new WaitForSeconds(charDelay);
         }
 
         if (_wobbleController != null) _wobbleController.SetSpeaking(false);
@@ -196,6 +196,7 @@ public class SlimeReply : MonoBehaviour
     }
 
     // --- Panel bounce open/close ---
+
     void OpenPanel()
     {
         if (repliesPanel == null) return;
@@ -244,6 +245,7 @@ public class SlimeReply : MonoBehaviour
         _panelRoutine = null;
     }
 
+    // Overshoots past the target before settling — used for opening
     float EaseOutBack(float t)
     {
         const float c1 = 1.70158f;
@@ -252,6 +254,7 @@ public class SlimeReply : MonoBehaviour
         return 1f + c3 * x * x * x + c1 * x * x;
     }
 
+    // Pulls back slightly before accelerating toward the target — used for closing
     float EaseInBack(float t)
     {
         const float c1 = 1.70158f;
