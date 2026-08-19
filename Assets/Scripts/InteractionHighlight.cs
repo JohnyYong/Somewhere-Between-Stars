@@ -54,7 +54,13 @@ public class InteractionHighlight : MonoBehaviour
 
 	void DetectTarget()
 	{
-		Cursor.lockState = CursorLockMode.None;
+        if (UnityEngine.EventSystems.EventSystem.current != null &&
+		UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+        {
+            return;
+        }
+
+        Cursor.lockState = CursorLockMode.None;
 		Cursor.visible = true;
 
 		Ray ray = _playerCamera.ScreenPointToRay(Input.mousePosition);

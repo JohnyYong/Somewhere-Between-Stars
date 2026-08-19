@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.Audio;
 
 //Need to make it such that the users can add music which they want as well
 //Maybe like a playlist maker / system for them as well
@@ -28,7 +29,10 @@ public class RadioInteraction : MonoBehaviour
 	private bool _isSwitching = false;
 	private AudioSource _radioSource;   // 3D source on the radio itself
 
-	void Start()
+    [Header("Audio Mixing")]
+    public AudioMixerGroup sfxMixerGroup;
+
+    void Start()
 	{
 		_radioSource = gameObject.AddComponent<AudioSource>();
 		_radioSource.spatialBlend = 1f;         // fully 3D
@@ -38,7 +42,12 @@ public class RadioInteraction : MonoBehaviour
 		_radioSource.playOnAwake = false;
 		_radioSource.loop = false;
 
-		AnimationCurve rolloff = new AnimationCurve();
+        if (sfxMixerGroup != null)
+        {
+            _radioSource.outputAudioMixerGroup = sfxMixerGroup;
+        }
+
+        AnimationCurve rolloff = new AnimationCurve();
 		rolloff.AddKey(0f, 1f);
 		rolloff.AddKey(0.1f, 0.8f);
 		rolloff.AddKey(0.5f, 0.3f);
@@ -55,9 +64,15 @@ public class RadioInteraction : MonoBehaviour
 
 	void TryInteract()
 	{
-		Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
+        if (UnityEngine.EventSystems.EventSystem.current != null &&
+		UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+        {
+            return;
+        }
 
-		if (Physics.Raycast(ray, out RaycastHit hit, 60f))
+        Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, 60f))
 		{
 			if (hit.collider.CompareTag("Radio"))
 				StartCoroutine(SwitchStation());
