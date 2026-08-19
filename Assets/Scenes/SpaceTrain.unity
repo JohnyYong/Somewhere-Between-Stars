@@ -19186,7 +19186,7 @@ MonoBehaviour:
   _SSLCert: 
   _SSLKey: 
   _numThreads: -1
-  _numGPULayers: 0
+  _numGPULayers: 50
   _parallelPrompts: 1
   _contextSize: 8192
   _batchSize: 512
@@ -21543,7 +21543,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
   m_IgnoreReversedGraphics: 1
-  m_BlockingObjects: 2
+  m_BlockingObjects: 0
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -21881,6 +21881,7 @@ MonoBehaviour:
   charDelay: 0.03
   panelOpenDuration: 0.35
   panelCloseDuration: 0.2
+  sendGreetingOnStart: 0
   greetingPrompt: The player has just sat down to talk with you. Greet them warmly
     in your usual manner. Say their name if you know their name.
 --- !u!114 &8338487989643251989
@@ -22068,10 +22069,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 84
+  m_fontSize: 72
   m_fontSizeBase: 84
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -22246,9 +22247,9 @@ MonoBehaviour:
   numRetries: 5
   _grammar: 
   numPredict: -1
-  cachePrompt: 1
+  cachePrompt: 0
   seed: 0
-  temperature: 0.2
+  temperature: 1.004
   topK: 40
   topP: 0.9
   minP: 0.05

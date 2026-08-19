@@ -20,6 +20,7 @@ public class SlimeReply : MonoBehaviour
     [SerializeField] private float panelCloseDuration = 0.2f;
 
     [Header("Greeting")]
+    [SerializeField] private bool sendGreetingOnStart = true; //toggle the auto-greeting on/off
     [SerializeField] private string greetingPrompt = "The player has just sat down to talk with you. Greet them warmly in your usual manner.";
 
 
@@ -74,7 +75,11 @@ public class SlimeReply : MonoBehaviour
     public void BeginConversation()
     {
         if (_isReplying) return;
-        SendToSlime(greetingPrompt);
+
+        if (sendGreetingOnStart)
+        {
+            SendToSlime(greetingPrompt);
+        }
 
         if (inputField != null)
         {
