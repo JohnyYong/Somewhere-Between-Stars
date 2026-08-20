@@ -59,19 +59,15 @@ public class SlimeWobbleController : MonoBehaviour
     {
         if (_isThinking)
         {
-            // Mild anticipatory jiggle while waiting on a reply
             _currentWobble = Mathf.Lerp(_currentWobble, thinkingWobble, Time.deltaTime * thinkingFollowSpeed);
         }
         else if (_isSpeaking)
         {
-            // While talking, ignore ambient drift and chase a fixed
-            // "animated speech" wobble level instead.
             _currentWobble = Mathf.Lerp(_currentWobble, speakingWobble, Time.deltaTime * speakingFollowSpeed);
         }
         else
         {
             // Perlin noise (0..1) sampled over time gives a smooth, non-repeating
-            // drift between calm and jiggly states.
             float n = Mathf.PerlinNoise(_noiseOffset, Time.time * driftSpeed);
             float targetWobble = Mathf.Lerp(minWobble, maxWobble, n);
             _currentWobble = Mathf.Lerp(_currentWobble, targetWobble, Time.deltaTime * followSpeed);
@@ -97,8 +93,7 @@ public class SlimeWobbleController : MonoBehaviour
         }
         else if (transform.localRotation != _restRotation)
         {
-            // Ease back to the original orientation once thinking stops,
-            // rather than snapping or leaving it mid-spin.
+
             transform.localRotation = Quaternion.Slerp(
                 transform.localRotation, _restRotation, Time.deltaTime * rotationResetSpeed);
         }
