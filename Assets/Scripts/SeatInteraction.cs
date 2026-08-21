@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class SeatInteraction : MonoBehaviour
 {
@@ -20,6 +21,10 @@ public class SeatInteraction : MonoBehaviour
     public KeyCode exitKey = KeyCode.Escape;
     public GameObject ChatSystem;
     public GameObject settingsPanel; //shown when viewing the luggage settings
+
+    [Header("Settings Panel Bounce")]
+    public float settingsOpenDuration = 0.35f;
+    public float settingsCloseDuration = 0.2f;
 
     // State
     private enum PlayerState { Standing, Seated, ViewingJournal, TalkingToCompanion, ViewingSettings }
@@ -44,12 +49,24 @@ public class SeatInteraction : MonoBehaviour
 
     [SerializeField] private GameObject playerChatBox;
 
+    // --- Settings panel bounce state ---
+    private RectTransform _settingsPanelRect;
+    private Coroutine _settingsPanelRoutine;
+
     void Start()
     {
         // Use CamOrigin as the standing reference instead of initial position
         _standingLocalPos = playerCamera.parent
             .InverseTransformPoint(camOrigin.position);
         _standingLocalRot = camOrigin.rotation;
+
+        if (settingsPanel != null)
+        {
+            _settingsPanelRect = settingsPanel.GetComponent<RectTransform>();
+            if (_settingsPanelRect != null)
+                _settingsPanelRect.localScale = Vector3.zero;
+            settingsPanel.SetActive(false);
+        }
     }
 
     void Update()
@@ -67,7 +84,7 @@ public class SeatInteraction : MonoBehaviour
         {
             ChatSystem.SetActive(false);
             playerChatBox.SetActive(false);
-            if (settingsPanel != null) settingsPanel.SetActive(false);
+            CloseSettingsPanel();
 
             if (_currentState == PlayerState.ViewingJournal ||
                 _currentState == PlayerState.TalkingToCompanion ||
@@ -83,8 +100,6 @@ public class SeatInteraction : MonoBehaviour
                 BeginTransition(PlayerState.Standing);
                 return;
             }
-
-
         }
 
         // Click interactions
@@ -95,7 +110,6 @@ public class SeatInteraction : MonoBehaviour
             {
                 return;
             }
-
 
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
@@ -122,14 +136,11 @@ public class SeatInteraction : MonoBehaviour
                          _currentState != PlayerState.ViewingSettings)
                 {
                     EnterOverlay(PlayerState.ViewingSettings);
-                    if (settingsPanel != null) settingsPanel.SetActive(true);
                 }
             }
         }
     }
 
-    // Shared entry point for overlay states (Journal, Companion, Settings).
-    // Remembers whether we were Standing or Seated so Escape can return correctly.
     void EnterOverlay(PlayerState overlayState)
     {
         if (_currentState == PlayerState.Standing || _currentState == PlayerState.Seated)
@@ -142,8 +153,6 @@ public class SeatInteraction : MonoBehaviour
                 _seatedLocalRot = playerCamera.localRotation;
             }
         }
-        // If we're already in another overlay (e.g. Journal -> Companion directly),
-        // _stateBeforeOverlay keeps whatever was recorded on the way into that overlay.
 
         BeginTransition(overlayState);
     }
@@ -203,7 +212,6 @@ public class SeatInteraction : MonoBehaviour
                 journalManager.CloseJournal();
         }
 
-        // Leaving the companion — end the conversation cleanly
         if (_currentState == PlayerState.TalkingToCompanion &&
             destination != PlayerState.TalkingToCompanion)
         {
@@ -211,14 +219,14 @@ public class SeatInteraction : MonoBehaviour
                 slimeReply.EndConversation();
         }
 
-        // Leaving settings — hide the panel
+        // Leaving settings — bounce the panel closed
         if (_currentState == PlayerState.ViewingSettings &&
             destination != PlayerState.ViewingSettings)
         {
-            if (settingsPanel != null)
-                settingsPanel.SetActive(false);
+            CloseSettingsPanel();
         }
     }
+
     void HandleTransition()
     {
         if (!_isTransitioning) return;
@@ -228,15 +236,12 @@ public class SeatInteraction : MonoBehaviour
 
         float t = Mathf.SmoothStep(0f, 1f, _transitionProgress);
 
-        Vector3 newPos = Vector3.Lerp(
-            _transitionStartPos, _transitionTargetPos, t);
-        Quaternion newRot = Quaternion.Lerp(
-            _transitionStartRot, _transitionTargetRot, t);
+        Vector3 newPos = Vector3.Lerp(_transitionStartPos, _transitionTargetPos, t);
+        Quaternion newRot = Quaternion.Lerp(_transitionStartRot, _transitionTargetRot, t);
 
         playerCamera.localPosition = newPos;
         playerCamera.localRotation = newRot;
 
-        // Keep shake anchor updated
         if (trainController != null)
             trainController.seatedLocalPosition = newPos;
 
@@ -250,20 +255,16 @@ public class SeatInteraction : MonoBehaviour
             if (_currentState == PlayerState.Standing && trainController != null)
             {
                 trainController.UpdateSwayOrigin(_standingLocalPos);
-                ReEnableSway();  // no more Invoke — called immediately
+                ReEnableSway();
             }
             else
             {
-                // Re-enable shake for seated/journal/companion/settings states
-                // sway stays suspended
                 if (trainController != null)
                     trainController.isShakeSuspended = false;
             }
 
             if (_currentState == PlayerState.ViewingJournal)
             {
-                Debug.Log("Arrived at journal — journalManager: " +
-                          (journalManager != null ? "assigned" : "NULL"));
                 if (journalManager != null)
                     journalManager.OpenJournal();
             }
@@ -272,6 +273,12 @@ public class SeatInteraction : MonoBehaviour
             {
                 if (slimeReply != null)
                     slimeReply.BeginConversation();
+            }
+
+            if (_currentState == PlayerState.ViewingSettings)
+            {
+                if (settingsPanel != null)
+                    OpenSettingsPanel();
             }
         }
     }
@@ -283,5 +290,70 @@ public class SeatInteraction : MonoBehaviour
             trainController.UpdateSwayOrigin(_standingLocalPos);
             trainController.FadeInSway();
         }
+    }
+
+    // --- Settings panel bounce ---
+
+    void OpenSettingsPanel()
+    {
+        if (settingsPanel == null || _settingsPanelRect == null) return;
+        if (_settingsPanelRoutine != null) StopCoroutine(_settingsPanelRoutine);
+
+        settingsPanel.SetActive(true);
+        _settingsPanelRoutine = StartCoroutine(
+            ScaleSettingsPanel(Vector3.one, settingsOpenDuration, easeOutBack: true));
+    }
+
+    void CloseSettingsPanel(bool instant = false)
+    {
+        if (settingsPanel == null || _settingsPanelRect == null) return;
+        if (_settingsPanelRoutine != null) StopCoroutine(_settingsPanelRoutine);
+
+        if (instant || !settingsPanel.activeSelf)
+        {
+            _settingsPanelRect.localScale = Vector3.zero;
+            settingsPanel.SetActive(false);
+            return;
+        }
+
+        _settingsPanelRoutine = StartCoroutine(
+            ScaleSettingsPanel(Vector3.zero, settingsCloseDuration, easeOutBack: false, deactivateOnFinish: true));
+    }
+
+    IEnumerator ScaleSettingsPanel(Vector3 targetScale, float duration, bool easeOutBack, bool deactivateOnFinish = false)
+    {
+        Vector3 startScale = _settingsPanelRect.localScale;
+        float t = 0f;
+
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float normalized = Mathf.Clamp01(t / duration);
+            float eased = easeOutBack ? EaseOutBack(normalized) : EaseInBack(normalized);
+            _settingsPanelRect.localScale = Vector3.LerpUnclamped(startScale, targetScale, eased);
+            yield return null;
+        }
+
+        _settingsPanelRect.localScale = targetScale;
+
+        if (deactivateOnFinish)
+            settingsPanel.SetActive(false);
+
+        _settingsPanelRoutine = null;
+    }
+
+    float EaseOutBack(float t)
+    {
+        const float c1 = 1.70158f;
+        const float c3 = c1 + 1f;
+        float x = t - 1f;
+        return 1f + c3 * x * x * x + c1 * x * x;
+    }
+
+    float EaseInBack(float t)
+    {
+        const float c1 = 1.70158f;
+        const float c3 = c1 + 1f;
+        return c3 * t * t * t - c1 * t * t;
     }
 }

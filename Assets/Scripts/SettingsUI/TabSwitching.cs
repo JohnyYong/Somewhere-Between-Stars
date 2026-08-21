@@ -2,37 +2,63 @@ using UnityEngine;
 
 public class TabSwitching : MonoBehaviour
 {
-    [SerializeField] private GameObject CompanionMenu;
-    [SerializeField] private GameObject GeneralMenu; //Always Default
+    public enum SettingsState
+    {
+        General,
+        Companion,
+        RadioPlaylist,
+    }
+
+    [System.Serializable]
+    private struct StatePanel
+    {
+        public SettingsState state;
+        public GameObject panel;
+    }
+
+    [SerializeField] private StatePanel[] panels;
+
+    [SerializeField] public SettingsState currentState = SettingsState.General;
 
     void OnEnable()
     {
-        OnGeneralMenu();
+        SwitchTo(SettingsState.General);
     }
 
     void OnDisable()
     {
-        GeneralMenu.SetActive(false);
-        CompanionMenu.SetActive(false);
+        foreach (var p in panels)
+        {
+            if (p.panel != null) p.panel.SetActive(false);
+        }
     }
 
-    public void OnGeneralMenu()
+    public void SwitchTo(SettingsState newState)
     {
-        if (GeneralMenu.activeSelf)
+        if (currentState == newState && IsCurrentPanelActive())
         {
-            return;
+            return; // already showing this state, nothing to do
         }
-        GeneralMenu.SetActive(true);
-        CompanionMenu.SetActive(false);
+
+        currentState = newState;
+
+        foreach (var p in panels)
+        {
+            if (p.panel != null) p.panel.SetActive(p.state == newState);
+        }
     }
 
-    public void OnCompanionMenu()
+    bool IsCurrentPanelActive()
     {
-        if (CompanionMenu.activeSelf)
+        foreach (var p in panels)
         {
-            return;
+            if (p.state == currentState)
+                return p.panel != null && p.panel.activeSelf;
         }
-        GeneralMenu.SetActive(false);
-        CompanionMenu.SetActive(true);
+        return false;
     }
+
+    public void OnGeneralMenu() => SwitchTo(SettingsState.General);
+    public void OnCompanionMenu() => SwitchTo(SettingsState.Companion);
+    public void OnRadioPlaylistMenu() => SwitchTo(SettingsState.RadioPlaylist);
 }
