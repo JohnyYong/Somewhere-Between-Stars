@@ -9,7 +9,7 @@ public class RadioPlaylistUI : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private RadioInteraction radioInteraction;
-    [SerializeField] private CustomMusicLoader customMusicLoader;
+    [SerializeField] private CustomAudioLoader customMusicLoader;
 
     [Header("List UI")]
     [SerializeField] private Transform listContent;  
@@ -64,7 +64,7 @@ public class RadioPlaylistUI : MonoBehaviour
         RebuildList();
     }
 
-    void RebuildList()
+    public void RebuildList()
     {
         foreach (var row in _rows)
         {

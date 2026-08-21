@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class TabSwitching : MonoBehaviour
@@ -20,6 +21,8 @@ public class TabSwitching : MonoBehaviour
 
     [SerializeField] public SettingsState currentState = SettingsState.General;
 
+    [SerializeField] private RadioPlaylistUI playlist;
+
     void OnEnable()
     {
         SwitchTo(SettingsState.General);
@@ -41,6 +44,10 @@ public class TabSwitching : MonoBehaviour
         }
 
         currentState = newState;
+        if (newState == SettingsState.RadioPlaylist)
+        {
+            playlist.RebuildList();
+        }
 
         foreach (var p in panels)
         {

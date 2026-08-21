@@ -11,7 +11,7 @@ public class RadioInteraction : MonoBehaviour
     public float crossfadeDuration = 2f;
 
     [Header("Custom Music")]
-    public CustomMusicLoader customMusicLoader;
+    public CustomAudioLoader customMusicLoader;
 
     [Header("Sounds")]
     public AudioClip radioTuningStatic;

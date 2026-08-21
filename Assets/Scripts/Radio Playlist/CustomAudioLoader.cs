@@ -5,7 +5,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class CustomMusicLoader : MonoBehaviour
+public class CustomAudioLoader : MonoBehaviour
 {
     [Header("Folder Settings")]
     public string folderName = "CustomMusic";
